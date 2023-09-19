@@ -112,4 +112,5 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Django DRF E-Commerce Backend Project',
+    "SCHEMA_PATH_PREFIX": "/api",
 }
