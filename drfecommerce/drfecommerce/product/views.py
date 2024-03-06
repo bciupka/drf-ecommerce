@@ -5,6 +5,7 @@ from .models import Product, Category, Brand
 from .serializers import CategorySerializer, ProductSerializer, BrandSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
+from django.db.models import Prefetch
 # from django.db import connection
 # from sqlparse import format
 # from pygments import highlight
@@ -41,7 +42,7 @@ class BrandViewSet(viewsets.ViewSet):
 class ProductViewSet(viewsets.ViewSet):
     """ViewSet for Product model."""
 
-    queryset = Product.objects.isactive().prefetch_related('product_line')
+    queryset = Product.objects.isactive().prefetch_related(Prefetch('product_line__product_image'))
     lookup_field = 'slug'
 
     @extend_schema(responses=ProductSerializer)
