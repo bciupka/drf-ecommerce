@@ -1,5 +1,5 @@
 import factory
-from drfecommerce.product.models import Category, Product, Brand, ProductLine
+from drfecommerce.product.models import Category, Product, Brand, ProductLine, ProductImage
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):
@@ -42,3 +42,12 @@ class ProductLineFactory(factory.django.DjangoModelFactory):
     stock_qty = 10
     product = factory.SubFactory(ProductFactory)
     is_active = True
+
+
+class ProductImageFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProductImage
+
+    alternative_text = factory.Sequence(lambda x: f"{x}_text")
+    url = factory.Sequence(lambda x: f"somefile_{x}.jpg")
+    productline = factory.SubFactory(ProductLineFactory)

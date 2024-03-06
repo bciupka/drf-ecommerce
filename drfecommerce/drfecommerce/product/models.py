@@ -70,3 +70,31 @@ class ProductLine(models.Model):
         for instance in queryset:
             if instance.id != self.id and instance.order == self.order:
                 raise ValidationError('Duplicate order number')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class ProductImage(models.Model):
+    alternative_text = models.CharField(max_length=100)
+    url = models.ImageField(upload_to=None, default='test.jpg')
+    productline = models.ForeignKey(ProductLine, on_delete=models.CASCADE, related_name='product_image')
+    order = OrderField(unique_for_field='productline', blank=True)
+
+    objects = ActiveQuerySet.as_manager()
+
+    def clean(self, exclude=None):
+        if self.order == 0:
+            raise ValidationError('Order needs to be grater than 0')
+        queryset = ProductImage.objects.filter(productline=self.productline)
+        for instance in queryset:
+            if instance.id != self.id and instance.order == self.order:
+                raise ValidationError('Duplicate order number')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.alternative_text} image'
