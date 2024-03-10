@@ -42,7 +42,8 @@ class BrandViewSet(viewsets.ViewSet):
 class ProductViewSet(viewsets.ViewSet):
     """ViewSet for Product model."""
 
-    queryset = Product.objects.isactive().prefetch_related(Prefetch('product_line__product_image'))
+    queryset = (Product.objects.isactive().prefetch_related(Prefetch('product_line__product_image')).prefetch_related
+                (Prefetch('product_line__attribute_values__attribute')))
     lookup_field = 'slug'
 
     @extend_schema(responses=ProductSerializer)
