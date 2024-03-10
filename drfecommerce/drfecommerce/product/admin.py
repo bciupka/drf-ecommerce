@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Brand, Category, Product, ProductLine, ProductImage
+from .models import Brand, Category, Product, ProductLine, ProductImage, Attribute, AttributeValue, ProductType
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
@@ -24,6 +24,14 @@ class ProductLineInLine(EditLink, admin.TabularInline):
     readonly_fields = ["edit"]
 
 
+class AttributeValueInline(admin.TabularInline):
+    model = AttributeValue.product_line_attribute_value.through
+
+
+class AttributeInline(admin.TabularInline):
+    model = Attribute.product_type_attribute.through
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductLineInLine]
@@ -31,8 +39,15 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductLine)
 class ProductLineAdmin(admin.ModelAdmin):
-    inlines = [ProductImageInline]
+    inlines = [ProductImageInline, AttributeValueInline]
+
+
+@admin.register(ProductType)
+class ProductTypeAdmin(admin.ModelAdmin):
+    inlines = [AttributeInline]
 
 
 admin.site.register(Brand)
 admin.site.register(Category)
+admin.site.register(Attribute)
+admin.site.register(AttributeValue)
