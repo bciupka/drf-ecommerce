@@ -1,6 +1,6 @@
 import factory
-from drfecommerce.product.models import (Category, Product, Brand, ProductLine, ProductImage, ProductType, Attribute,
-                                         AttributeValue)
+from drfecommerce.product.models import (Category, Product, ProductLine, ProductImage, ProductType, Attribute,
+                                         AttributeValue, ProductLineAttributeValue, ProductAttributeValue)
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):
@@ -9,16 +9,6 @@ class CategoryFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: f'test_category_{n}')
     slug = factory.Sequence(lambda n: f'test_cat_slug_{n}')
-    is_active = True
-
-
-class BrandFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Brand
-
-    name = factory.Sequence(lambda n: f'test_brand_{n}')
-    slug = factory.Sequence(lambda n: f'test_brand_slug_{n}')
-    is_active = True
 
 
 class ProductTypeFactory(factory.django.DjangoModelFactory):
@@ -38,15 +28,20 @@ class ProductTypeFactory(factory.django.DjangoModelFactory):
 class ProductFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Product
+        skip_postgeneration_save = True
 
-    name = 'test_product'
+    name = factory.Sequence(lambda n: f'test_product_{n}')
     slug = factory.Sequence(lambda n: f'test_p_{n}')
+    pid = factory.Sequence(lambda n: f'{n}')
     description = 'desc'
-    is_digital = True
-    brand = factory.SubFactory(BrandFactory)
     category = factory.SubFactory(CategoryFactory)
     product_type = factory.SubFactory(ProductTypeFactory)
-    is_active = True
+
+    @factory.post_generation
+    def attribute_values(self, create, extracted, **kwargs):
+        if not create or not extracted:
+            return
+        self.attribute_values.add(*extracted)
 
 
 class ProductLineFactory(factory.django.DjangoModelFactory):
@@ -57,8 +52,9 @@ class ProductLineFactory(factory.django.DjangoModelFactory):
     price = factory.Sequence(lambda n: float(n))
     sku = factory.Sequence(lambda n: f'sku_{n}')
     stock_qty = 10
+    weight = 1.000
     product = factory.SubFactory(ProductFactory)
-    is_active = True
+    product_type = factory.SubFactory(ProductTypeFactory)
 
     @factory.post_generation
     def attribute_values(self, create, extracted, **kwargs):
@@ -73,7 +69,7 @@ class ProductImageFactory(factory.django.DjangoModelFactory):
 
     alternative_text = factory.Sequence(lambda x: f"{x}_text")
     url = factory.Sequence(lambda x: f"somefile_{x}.jpg")
-    productline = factory.SubFactory(ProductLineFactory)
+    product_line = factory.SubFactory(ProductLineFactory)
 
 
 class AttributeFactory(factory.django.DjangoModelFactory):
@@ -90,3 +86,19 @@ class AttributeValueFactory(factory.django.DjangoModelFactory):
 
     attribute_value = factory.Sequence(lambda x: f'attr_val_{x}')
     attribute = factory.SubFactory(AttributeFactory)
+
+
+class ProductLineAttributeValueFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProductLineAttributeValue
+
+    product_line = factory.SubFactory(ProductLineFactory)
+    attribute_value = factory.SubFactory(AttributeValueFactory)
+
+
+class ProductAttributeValueFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProductAttributeValue
+
+    product = factory.SubFactory(ProductLineFactory)
+    attribute_value = factory.SubFactory(AttributeValueFactory)

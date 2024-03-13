@@ -1,8 +1,8 @@
 # from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .models import Product, Category, Brand
-from .serializers import CategorySerializer, ProductSerializer, BrandSerializer
+from .models import Product, Category
+from .serializers import CategorySerializer, ProductSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from django.db.models import Prefetch
@@ -16,7 +16,7 @@ from django.db.models import Prefetch
 class CategoryViewSet(viewsets.ViewSet):
     """A simple ViewSet - returning all categories in REST standard."""
 
-    queryset = Category.objects.isactive()
+    queryset = Category.objects.is_active()
     lookup_field = 'slug'
 
     @extend_schema(responses=CategorySerializer)
@@ -26,23 +26,10 @@ class CategoryViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class BrandViewSet(viewsets.ViewSet):
-    """A simple ViewSet - returning all brands in REST standard."""
-
-    queryset = Brand.objects.isactive()
-    lookup_field = 'slug'
-
-    @extend_schema(responses=BrandSerializer)
-    def list(self, request):
-        serializer = BrandSerializer(self.queryset, many=True)
-
-        return Response(serializer.data)
-
-
 class ProductViewSet(viewsets.ViewSet):
     """ViewSet for Product model."""
 
-    queryset = (Product.objects.isactive().prefetch_related(Prefetch('product_line__product_image')).prefetch_related
+    queryset = (Product.objects.is_active().prefetch_related(Prefetch('product_line__product_image')).prefetch_related
                 (Prefetch('product_line__attribute_values__attribute')))
     lookup_field = 'slug'
 
@@ -56,7 +43,7 @@ class ProductViewSet(viewsets.ViewSet):
     @action(methods=['get'], detail=False, url_path=r'category/(?P<slug>[-\w]+)/all')
     def list_products_by_cat(self, request, slug=None):
         serializer = ProductSerializer(
-            self.queryset.filter(category__slug=slug).select_related('brand', 'category'), many=True)
+            self.queryset.filter(category__slug=slug).select_related('category'), many=True)
         x = Response(serializer.data)
         # for query in connection.queries:
         #     form = format(query['sql'], reindent=True)
@@ -66,7 +53,7 @@ class ProductViewSet(viewsets.ViewSet):
     @extend_schema(responses=ProductSerializer)
     def retrieve(self, request, slug=None):
         serializer = ProductSerializer(
-            self.queryset.filter(slug=slug).select_related('brand', 'category'), many=True)
+            self.queryset.filter(slug=slug).select_related('category'), many=True)
         x = Response(serializer.data)
         # for query in connection.queries:
         #     form = format(query['sql'], reindent=True)
